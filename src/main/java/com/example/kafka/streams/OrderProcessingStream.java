@@ -13,6 +13,7 @@ import org.apache.kafka.streams.kstream.Produced;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.Properties;
 
 /**
@@ -33,8 +34,10 @@ public class OrderProcessingStream {
         Properties props = KafkaConfig.getStreamsConfig();
         props.put(StreamsConfig.APPLICATION_ID_CONFIG, "order-processing-app");
         
-        // 设置状态目录，避免权限问题
-        props.put(StreamsConfig.STATE_DIR_CONFIG, "./kafka-streams-state");
+        // 设置状态目录为用户主目录，避免权限问题
+        String userHome = System.getProperty("user.home");
+        String stateDir = userHome + File.separator + "kafka-streams-state";
+        props.put(StreamsConfig.STATE_DIR_CONFIG, stateDir);
         
         StreamsBuilder builder = new StreamsBuilder();
         

@@ -1,9 +1,11 @@
 package com.example.kafka.config;
 
+import com.example.kafka.util.StreamsConfigHelper;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.kafka.streams.StreamsConfig;
 
 import java.util.Properties;
 
@@ -94,13 +96,14 @@ public class KafkaConfig {
      */
     public static Properties getStreamsConfig() {
         Properties props = new Properties();
-        props.put(org.apache.kafka.streams.StreamsConfig.APPLICATION_ID_CONFIG, "kafka-streams-app");
-        props.put(org.apache.kafka.streams.StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
-        props.put(org.apache.kafka.streams.StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, 
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "kafka-streams-app");
+        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
+        props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, 
                   org.apache.kafka.common.serialization.Serdes.String().getClass().getName());
-        props.put(org.apache.kafka.streams.StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, 
+        props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, 
                   org.apache.kafka.common.serialization.Serdes.String().getClass().getName());
         
-        return props;
+        // 使用配置助手创建安全的配置
+        return StreamsConfigHelper.createSafeStreamsConfig(props);
     }
 }

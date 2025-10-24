@@ -77,16 +77,7 @@ public class MenuManager {
         }
     }
     
-    /**
-     * 等待用户按Enter键
-     */
-    public void waitForEnter() {
-        try {
-            System.in.read();
-        } catch (Exception e) {
-            // 忽略异常
-        }
-    }
+
     
     /**
      * 关闭资源
