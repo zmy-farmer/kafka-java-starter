@@ -7,14 +7,12 @@ import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.common.TopicPartition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Properties;
-import java.util.Set;
 
 /**
  * 简单Kafka消费者示例
@@ -40,7 +38,7 @@ public class SimpleConsumer {
             consumer.subscribe(Arrays.asList(topic));
             logger.info("开始消费主题: {}", topic);
             
-            while (running && !Thread.currentThread().isInterrupted()) {
+            while (this.running && !Thread.currentThread().isInterrupted()) {
                 // 拉取消息，减少超时时间让程序更响应
                 ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
                 
@@ -62,7 +60,13 @@ public class SimpleConsumer {
         } catch (Exception e) {
             logger.error("消费消息时发生错误", e);
         } finally {
-            consumer.close();
+            logger.info("消费者正在关闭...");
+            try {
+                consumer.close();
+                logger.info("消费者已关闭");
+            } catch (Exception e) {
+                logger.warn("关闭消费者时发生错误", e);
+            }
         }
     }
     
@@ -112,59 +116,14 @@ public class SimpleConsumer {
         // 这里可以添加业务逻辑
         // 例如：数据验证、转换、存储等
     }
-    
-    /**
-     * 从指定偏移量开始消费
-     */
-    public void consumeFromOffset(String topic, int partition, long offset) {
-        try {
-            TopicPartition topicPartition = new TopicPartition(topic, partition);
-            consumer.assign(Arrays.asList(topicPartition));
-            consumer.seek(topicPartition, offset);
-            
-            logger.info("从主题 {} 分区 {} 偏移量 {} 开始消费", topic, partition, offset);
-            
-            while (running) {
-                ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(1));
-                
-                for (ConsumerRecord<String, String> record : records) {
-                    processMessage(record);
-                }
-                
-                consumer.commitSync();
-            }
-            
-        } catch (Exception e) {
-            logger.error("从指定偏移量消费时发生错误", e);
-        } finally {
-            consumer.close();
-        }
-    }
-    
-    /**
-     * 获取当前消费进度
-     */
-    public void printConsumerProgress() {
-        try {
-            Set<TopicPartition> assignments = consumer.assignment();
-            for (TopicPartition partition : assignments) {
-                long position = consumer.position(partition);
-                logger.info("主题 {} 分区 {} 当前偏移量: {}", 
-                          partition.topic(), partition.partition(), position);
-            }
-        } catch (Exception e) {
-            logger.error("获取消费进度时发生错误", e);
-        }
-    }
-    
+
     /**
      * 停止消费
      */
     public void stop() {
-        running = false;
-        logger.info("消费者停止");
-        // 中断当前线程
-        Thread.currentThread().interrupt();
+        logger.info("正在停止消费者...");
+        this.running = false;
+        logger.info("消费者停止信号已发送");
     }
     
     /**
@@ -176,21 +135,5 @@ public class SimpleConsumer {
             logger.info("消费者已关闭");
         }
     }
-    
-    public static void main(String[] args) {
-        SimpleConsumer consumer = new SimpleConsumer();
-        
-        // 添加关闭钩子
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            logger.info("收到关闭信号，正在停止消费者...");
-            consumer.stop();
-        }));
-        
-        try {
-            // 消费消息
-            consumer.consumeMessages(KafkaConfig.TOPIC_NAME);
-        } finally {
-            consumer.close();
-        }
-    }
+
 }

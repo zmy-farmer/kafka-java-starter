@@ -2,6 +2,8 @@ package com.example.kafka.manager;
 
 import com.example.kafka.producer.SimpleProducer;
 import com.example.kafka.producer.AdvancedProducer;
+import com.example.kafka.config.KafkaConfig;
+import com.example.kafka.util.InputManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,7 +24,7 @@ public class ProducerManager {
         
         try {
             // 发送测试消息
-            producer.sendMessage("test-topic", "test-key", "Hello from Simple Producer!");
+            producer.sendMessage(KafkaConfig.TOPIC_NAME, "test-key", "Hello from Simple Producer!");
             System.out.println("消息发送完成");
         } catch (Exception e) {
             logger.error("简单生产者发送消息时发生错误", e);
@@ -40,7 +42,7 @@ public class ProducerManager {
         
         try {
             // 发送测试消息
-            producer.sendMessageWithTimestamp("test-topic", "advanced-key", "Hello from Advanced Producer!");
+            producer.sendMessageWithTimestamp(KafkaConfig.TOPIC_NAME, "advanced-key", "Hello from Advanced Producer!");
             System.out.println("高级生产者消息发送完成");
         } catch (Exception e) {
             logger.error("高级生产者发送消息时发生错误", e);
@@ -59,21 +61,19 @@ public class ProducerManager {
         SimpleProducer producer = new SimpleProducer();
         
         try {
-            java.util.Scanner scanner = new java.util.Scanner(System.in);
             while (true) {
                 System.out.print("请输入消息: ");
-                String message = scanner.nextLine();
+                String message = InputManager.readLine();
                 
-                if ("quit".equalsIgnoreCase(message)) {
+                if (message == null || "quit".equalsIgnoreCase(message)) {
                     break;
                 }
                 
                 if (!message.trim().isEmpty()) {
-                    producer.sendMessage("test-topic", "interactive-key", message);
+                    producer.sendMessage(KafkaConfig.TOPIC_NAME, "interactive-key", message);
                     System.out.println("消息已发送: " + message);
                 }
             }
-            scanner.close();
         } catch (Exception e) {
             logger.error("交互式生产者运行时发生错误", e);
         } finally {

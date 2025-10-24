@@ -22,7 +22,10 @@ public class WordCountStream {
     private static final String INPUT_TOPIC = "streams-plaintext-input";
     private static final String OUTPUT_TOPIC = "streams-wordcount-output";
     
-    public static void main(String[] args) {
+    /**
+     * 启动单词计数流处理器
+     */
+    public static void start() {
         Properties props = KafkaConfig.getStreamsConfig();
         
         StreamsBuilder builder = new StreamsBuilder();
@@ -55,4 +58,5 @@ public class WordCountStream {
             logger.error("启动Kafka Streams时发生错误", e);
         }
     }
+
 }

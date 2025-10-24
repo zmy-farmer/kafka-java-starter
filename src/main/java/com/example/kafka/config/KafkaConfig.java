@@ -50,14 +50,21 @@ public class KafkaConfig {
      * 获取消费者配置
      */
     public static Properties getConsumerConfig() {
+        return getConsumerConfig(CONSUMER_GROUP, "latest");
+    }
+    
+    /**
+     * 获取消费者配置（自定义消费者组和偏移量策略）
+     */
+    public static Properties getConsumerConfig(String groupId, String offsetReset) {
         Properties props = new Properties();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, CONSUMER_GROUP);
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         
         // 偏移量配置
-        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest"); // 从最早开始消费
+        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, offsetReset); // earliest/latest/none
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false); // 手动提交偏移量
         
         // 性能配置
@@ -66,6 +73,20 @@ public class KafkaConfig {
         props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 500);
         
         return props;
+    }
+    
+    /**
+     * 获取消费者配置（从头开始消费）
+     */
+    public static Properties getConsumerConfigFromBeginning(String groupId) {
+        return getConsumerConfig(groupId, "earliest");
+    }
+    
+    /**
+     * 获取消费者配置（从最新开始消费）
+     */
+    public static Properties getConsumerConfigFromLatest(String groupId) {
+        return getConsumerConfig(groupId, "latest");
     }
     
     /**

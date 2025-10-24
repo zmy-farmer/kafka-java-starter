@@ -1,9 +1,8 @@
 package com.example.kafka.menu;
 
+import com.example.kafka.util.InputManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Scanner;
 
 /**
  * 菜单管理器
@@ -12,10 +11,9 @@ import java.util.Scanner;
 public class MenuManager {
     
     private static final Logger logger = LoggerFactory.getLogger(MenuManager.class);
-    private final Scanner scanner;
     
     public MenuManager() {
-        this.scanner = new Scanner(System.in);
+        // 使用全局输入管理器，不需要初始化
     }
     
     /**
@@ -52,20 +50,13 @@ public class MenuManager {
         System.out.print("请选择操作 (1-7): ");
         
         try {
-            if (scanner.hasNextInt()) {
-                int choice = scanner.nextInt();
-                scanner.nextLine(); // 消费换行符
-                return choice;
-            } else {
+            int choice = InputManager.readInt();
+            if (choice == -1) {
                 System.out.println("请输入有效的数字 (1-7)");
-                scanner.nextLine(); // 清除无效输入
-                return -1;
             }
+            return choice;
         } catch (Exception e) {
             logger.error("处理用户输入时发生错误", e);
-            if (scanner.hasNextLine()) {
-                scanner.nextLine(); // 清除错误输入
-            }
             return -1;
         }
     }
@@ -75,15 +66,11 @@ public class MenuManager {
      */
     public int getStreamProcessorChoice() {
         try {
-            if (scanner.hasNextInt()) {
-                int choice = scanner.nextInt();
-                scanner.nextLine();
-                return choice;
-            } else {
+            int choice = InputManager.readInt();
+            if (choice == -1) {
                 System.out.println("请输入有效的数字");
-                scanner.nextLine();
-                return -1;
             }
+            return choice;
         } catch (Exception e) {
             logger.error("运行流处理器时发生错误", e);
             return -1;
@@ -105,8 +92,7 @@ public class MenuManager {
      * 关闭资源
      */
     public void close() {
-        if (scanner != null) {
-            scanner.close();
-        }
+        // 使用全局输入管理器，不需要关闭
+        // InputManager.close(); // 如果需要关闭，可以调用这个方法
     }
 }

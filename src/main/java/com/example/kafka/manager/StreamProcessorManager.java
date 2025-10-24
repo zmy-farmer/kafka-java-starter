@@ -1,5 +1,9 @@
 package com.example.kafka.manager;
 
+import com.example.kafka.streams.WordCountStream;
+import com.example.kafka.streams.OrderProcessingStream;
+import com.example.kafka.streams.AdvancedStreamProcessor;
+import com.example.kafka.util.InputManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,14 +23,14 @@ public class StreamProcessorManager {
         System.out.println("按 Enter 键停止流处理器");
         
         try {
-            com.example.kafka.streams.WordCountStream.main(new String[]{});
+            WordCountStream.start();
         } catch (Exception e) {
             logger.error("启动单词计数流处理器时发生错误", e);
         }
         
         // 等待用户按Enter键
         try {
-            System.in.read();
+            InputManager.readLine();
         } catch (Exception e) {
             // 忽略异常
         }
@@ -40,14 +44,14 @@ public class StreamProcessorManager {
         System.out.println("按 Enter 键停止流处理器");
         
         try {
-            com.example.kafka.streams.OrderProcessingStream.main(new String[]{});
+            OrderProcessingStream.start();
         } catch (Exception e) {
             logger.error("启动订单处理流处理器时发生错误", e);
         }
         
         // 等待用户按Enter键
         try {
-            System.in.read();
+            InputManager.readLine();
         } catch (Exception e) {
             // 忽略异常
         }
@@ -61,14 +65,14 @@ public class StreamProcessorManager {
         System.out.println("按 Enter 键停止流处理器");
         
         try {
-            com.example.kafka.streams.AdvancedStreamProcessor.main(new String[]{});
+            AdvancedStreamProcessor.start();
         } catch (Exception e) {
             logger.error("启动高级流处理器时发生错误", e);
         }
         
         // 等待用户按Enter键
         try {
-            System.in.read();
+            InputManager.readLine();
         } catch (Exception e) {
             // 忽略异常
         }

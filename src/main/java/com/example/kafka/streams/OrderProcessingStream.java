@@ -26,7 +26,10 @@ public class OrderProcessingStream {
     private static final String HIGH_VALUE_ORDERS_TOPIC = "order-summary-topic";
     private static final String ORDER_STATS_TOPIC = "enriched-order-topic";
     
-    public static void main(String[] args) {
+    /**
+     * 启动订单处理流处理器
+     */
+    public static void start() {
         Properties props = KafkaConfig.getStreamsConfig();
         props.put(StreamsConfig.APPLICATION_ID_CONFIG, "order-processing-app");
         
@@ -87,6 +90,7 @@ public class OrderProcessingStream {
             logger.error("启动订单处理流时发生错误", e);
         }
     }
+
     
     /**
      * 验证订单是否有效

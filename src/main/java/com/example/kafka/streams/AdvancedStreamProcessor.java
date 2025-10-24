@@ -26,7 +26,10 @@ public class AdvancedStreamProcessor {
     private static final String ORDER_SUMMARY_TOPIC = "order-summary";
     private static final String USER_ORDER_JOIN_TOPIC = "user-order-join";
     
-    public static void main(String[] args) {
+    /**
+     * 启动高级流处理器
+     */
+    public static void start() {
         Properties props = KafkaConfig.getStreamsConfig();
         props.put(StreamsConfig.APPLICATION_ID_CONFIG, "advanced-stream-processor");
         
@@ -113,7 +116,7 @@ public class AdvancedStreamProcessor {
             logger.error("启动高级流处理器时发生错误", e);
         }
     }
-    
+
     /**
      * 提取订单金额
      */
