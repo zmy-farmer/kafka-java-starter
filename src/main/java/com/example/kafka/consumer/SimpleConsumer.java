@@ -40,9 +40,9 @@ public class SimpleConsumer {
             consumer.subscribe(Arrays.asList(topic));
             logger.info("开始消费主题: {}", topic);
             
-            while (running) {
-                // 拉取消息，超时时间1秒
-                ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(1));
+            while (running && !Thread.currentThread().isInterrupted()) {
+                // 拉取消息，减少超时时间让程序更响应
+                ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
                 
                 if (records.isEmpty()) {
                     continue;
@@ -163,6 +163,8 @@ public class SimpleConsumer {
     public void stop() {
         running = false;
         logger.info("消费者停止");
+        // 中断当前线程
+        Thread.currentThread().interrupt();
     }
     
     /**
