@@ -35,15 +35,16 @@ public class AdvancedConsumer {
     }
     
     /**
-     * 多线程消费消息
+     * 多线程消费消息（修复版本）
+     * 注意：KafkaConsumer不是线程安全的，所以这里使用单线程消费，多线程处理
      */
     public void consumeMessagesMultiThread(String topic) {
         try {
             consumer.subscribe(Arrays.asList(topic));
             logger.info("开始多线程消费主题: {}", topic);
             
-            while (running) {
-                ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(1));
+            while (running && !Thread.currentThread().isInterrupted()) {
+                ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
                 
                 if (records.isEmpty()) {
                     continue;
@@ -57,23 +58,47 @@ public class AdvancedConsumer {
                 for (TopicPartition partition : partitions) {
                     List<ConsumerRecord<String, String>> partitionRecords = records.records(partition);
                     
-                    // 为每个分区创建处理任务
+                    // 为每个分区创建处理任务（只处理消息，不提交偏移量）
                     executorService.submit(() -> {
-                        processPartitionRecords(partition, partitionRecords);
+                        processPartitionRecordsSafe(partition, partitionRecords);
                     });
                 }
+                
+                // 在主线程中统一提交偏移量
+                consumer.commitSync();
             }
             
         } catch (Exception e) {
             logger.error("多线程消费消息时发生错误", e);
         } finally {
+            logger.info("多线程消费者正在关闭...");
             executorService.shutdown();
             consumer.close();
+            logger.info("多线程消费者已关闭");
         }
     }
     
     /**
-     * 处理分区内的消息
+     * 处理分区内的消息（线程安全版本）
+     * 只处理消息，不提交偏移量
+     */
+    private void processPartitionRecordsSafe(TopicPartition partition, List<ConsumerRecord<String, String>> records) {
+        try {
+            logger.info("处理分区 {} 的 {} 条消息", partition.partition(), records.size());
+            
+            for (ConsumerRecord<String, String> record : records) {
+                processMessage(record);
+            }
+            
+            logger.info("分区 {} 的 {} 条消息处理完成", partition.partition(), records.size());
+            
+        } catch (Exception e) {
+            logger.error("处理分区 {} 消息时发生错误", partition.partition(), e);
+        }
+    }
+    
+    /**
+     * 处理分区内的消息（旧版本，保留用于兼容性）
      */
     private void processPartitionRecords(TopicPartition partition, List<ConsumerRecord<String, String>> records) {
         try {
@@ -83,6 +108,7 @@ public class AdvancedConsumer {
                 processMessage(record);
             }
             
+            // 注意：这个方法在多线程环境中不安全
             // 手动提交该分区的偏移量
             long lastOffset = records.get(records.size() - 1).offset();
             Map<TopicPartition, OffsetAndMetadata> offsets = new HashMap<>();
@@ -243,6 +269,8 @@ public class AdvancedConsumer {
     public void stop() {
         running = false;
         logger.info("高级消费者停止");
+        // 中断当前线程
+        Thread.currentThread().interrupt();
     }
     
     /**

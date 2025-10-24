@@ -103,3 +103,5 @@ data/
 
 # Virtual machine crash logs
 hs_err_pid*
+kafka-streams-state/
+scripts/

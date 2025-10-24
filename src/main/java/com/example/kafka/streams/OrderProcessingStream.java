@@ -23,38 +23,48 @@ public class OrderProcessingStream {
     
     private static final Logger logger = LoggerFactory.getLogger(OrderProcessingStream.class);
     private static final String ORDER_TOPIC = "order-topic";
-    private static final String HIGH_VALUE_ORDERS_TOPIC = "high-value-orders";
-    private static final String ORDER_STATS_TOPIC = "order-stats";
+    private static final String HIGH_VALUE_ORDERS_TOPIC = "order-summary-topic";
+    private static final String ORDER_STATS_TOPIC = "enriched-order-topic";
     
     public static void main(String[] args) {
         Properties props = KafkaConfig.getStreamsConfig();
         props.put(StreamsConfig.APPLICATION_ID_CONFIG, "order-processing-app");
+        
+        // 设置状态目录，避免权限问题
+        props.put(StreamsConfig.STATE_DIR_CONFIG, "./kafka-streams-state");
         
         StreamsBuilder builder = new StreamsBuilder();
         
         // 创建订单输入流
         KStream<String, String> orderStream = builder.stream(ORDER_TOPIC);
         
-        // 处理订单流
-        orderStream
+        // 处理订单流 - 验证和过滤
+        KStream<String, String> validOrders = orderStream
             .peek((key, value) -> logger.info("收到订单: {}", value))
             .filter((key, value) -> isValidOrder(value))
             .mapValues(value -> processOrder(value))
-            .filter((key, value) -> value != null)
-            .branch(
-                (key, value) -> isHighValueOrder(value), // 高价值订单
-                (key, value) -> true // 普通订单
-            );
+            .filter((key, value) -> value != null);
         
-        // 高价值订单处理
-        KStream<String, String> highValueOrders = orderStream
-            .filter((key, value) -> isHighValueOrder(value))
-            .mapValues(value -> addHighValueFlag(value));
+        // 分支处理：高价值订单和普通订单
+        KStream<String, String>[] branches = validOrders.branch(
+            (key, value) -> isHighValueOrder(value), // 高价值订单
+            (key, value) -> true // 普通订单
+        );
         
-        highValueOrders.to(HIGH_VALUE_ORDERS_TOPIC, Produced.with(Serdes.String(), Serdes.String()));
+        KStream<String, String> highValueOrders = branches[0];
+        KStream<String, String> normalOrders = branches[1];
         
-        // 订单统计
-        KTable<String, Long> orderCounts = orderStream
+        // 高价值订单特殊处理
+        highValueOrders
+            .mapValues(value -> addHighValueFlag(value))
+            .to(HIGH_VALUE_ORDERS_TOPIC, Produced.with(Serdes.String(), Serdes.String()));
+        
+        // 普通订单处理
+        normalOrders
+            .to("normal-orders", Produced.with(Serdes.String(), Serdes.String()));
+        
+        // 订单统计 - 使用所有有效订单
+        KTable<String, Long> orderCounts = validOrders
             .mapValues(value -> extractUserId(value))
             .groupBy((key, value) -> value)
             .count();
