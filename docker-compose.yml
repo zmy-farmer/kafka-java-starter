@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  sx-kafka-test:
+    image: apache/kafka:3.9.0
+    container_name: sx-kafka-test
+    restart: always
+    user: root     # 指定以root用户权限启动
+    ports:
+      - "29092:9092"
+      - "29093:9093"
+    environment: # 根据情况调整下面配置参数的ip与端口
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_NODE_ID: 1
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@127.0.0.1:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://127.0.0.1:29092,CONTROLLER://127.0.0.1:29093,INTERNAL://sx-kafka-test:29092  # 增加INTERNAL用于容器内部其他服务（ui、keycloak）访问使用kafka
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093,INTERNAL://0.0.0.0:29092   # 0.0.0.0 监听全部ip
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,INTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: true              # 自动创建主题
+      KAFKA_LOG_DIRS: /var/lib/kafka/data                # 指定容器内数据持久化位置，此目录只能由root用户操作写入文件
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1          # 存储消费者读取数据的偏移信息,在生产环境中，建议设置为大于 1 的值，以提高容错性
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1  #  Kafka 事务日志的复制因子,在生产环境中，确保事务日志的高可用性，通常会将此值设置为大于 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1             #  Kafka 事务日志在最小可用副本数,在生产环境中，建议设置为大于 1 的值
+    volumes:
+      - ./data/kafka-data/:/var/lib/kafka/data/
+
+  sx-kafka-ui-test:
+    image: provectuslabs/kafka-ui:v0.7.2
+    container_name: sx-kafka-ui-test
+    restart: no
+    ports:
+      - "28081:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: "docker-cluster"
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: "sx-kafka-test:29092"
+    depends_on:
+      - sx-kafka-test
