@@ -1,6 +1,6 @@
 # Kafka 详细使用示例
 
-这是一个完整的Java Kafka使用示例项目，展示了Kafka的各种功能和最佳实践。
+这是一个完整的Java Kafka使用示例项目，展示了Kafka的各种功能和最佳实践。项目采用分层架构设计，支持交互式和命令行两种使用模式。
 
 ## 项目结构
 
@@ -8,46 +8,74 @@
 kafka/
 ├── pom.xml                                    # Maven配置文件
 ├── README.md                                  # 项目说明文档
-└── src/main/java/com/example/kafka/
-    ├── KafkaApplication.java                  # 主应用类
-    ├── config/
-    │   └── KafkaConfig.java                   # Kafka配置类
-    ├── model/
-    │   ├── User.java                          # 用户实体类
-    │   └── Order.java                         # 订单实体类
-    ├── util/
-    │   └── JsonUtil.java                      # JSON工具类
-    ├── producer/
-    │   ├── SimpleProducer.java                # 简单生产者示例
-    │   └── AdvancedProducer.java              # 高级生产者示例
-    ├── consumer/
-    │   ├── SimpleConsumer.java                # 简单消费者示例
-    │   └── AdvancedConsumer.java              # 高级消费者示例
-    └── streams/
-        ├── WordCountStream.java               # 单词计数流处理
-        ├── OrderProcessingStream.java         # 订单处理流
-        └── AdvancedStreamProcessor.java       # 高级流处理器
+├── docker-compose.yml                         # Docker Compose配置
+├── src/main/java/com/example/kafka/
+│   ├── ApplicationLauncher.java               # 应用启动器（主入口）
+│   ├── config/
+│   │   └── KafkaConfig.java                   # Kafka配置类
+│   ├── model/
+│   │   ├── User.java                          # 用户实体类
+│   │   └── Order.java                         # 订单实体类
+│   ├── util/
+│   │   ├── JsonUtil.java                      # JSON工具类
+│   │   ├── InputManager.java                  # 输入管理器
+│   │   └── StreamsConfigHelper.java           # 流处理配置助手
+│   ├── producer/
+│   │   ├── SimpleProducer.java                # 简单生产者示例
+│   │   └── AdvancedProducer.java              # 高级生产者示例
+│   ├── consumer/
+│   │   ├── SimpleConsumer.java                # 简单消费者示例
+│   │   ├── AdvancedConsumer.java              # 高级消费者示例
+│   │   └── ImprovedMultiThreadConsumer.java   # 改进的多线程消费者
+│   ├── streams/
+│   │   ├── WordCountStream.java               # 单词计数流处理
+│   │   ├── OrderProcessingStream.java         # 订单处理流
+│   │   └── AdvancedStreamProcessor.java      # 高级流处理器
+│   ├── menu/
+│   │   └── MenuManager.java                   # 菜单管理器
+│   └── manager/
+│       ├── ProducerManager.java               # 生产者管理器
+│       ├── ConsumerManager.java               # 消费者管理器
+│       └── StreamProcessorManager.java        # 流处理器管理器
+├── src/main/resources/
+│   └── logback.xml                            # 日志配置
+└── data/
+    └── kafka-data/                            # Kafka数据持久化目录
 ```
 
 ## 功能特性
 
+### 🏗️ 架构特性
+- **分层架构**: 采用管理器模式，职责分离清晰
+- **交互式界面**: 友好的菜单系统，支持用户交互
+- **命令行支持**: 支持脚本化和自动化运行
+- **模块化设计**: 各功能模块独立，便于扩展和维护
+
 ### 1. 生产者功能
 - **简单生产者**: 基本的消息发送功能
 - **高级生产者**: 分区、压缩、事务等高级功能
+- **交互式生产者**: 支持实时输入和发送消息
 - **批量发送**: 高效的批量消息发送
 - **异步发送**: 非阻塞的消息发送
 
 ### 2. 消费者功能
 - **简单消费者**: 基本的消息消费功能
 - **高级消费者**: 多线程消费、手动提交偏移量
+- **多线程消费者**: 改进的多线程消费实现
 - **批量消费**: 高效的批量消息处理
 - **分区消费**: 指定分区消费消息
 
 ### 3. 流处理功能
 - **单词计数**: 经典的流处理示例
 - **订单处理**: 复杂的业务流处理
-- **窗口操作**: 时间窗口聚合
-- **流连接**: 多流数据连接
+- **高级流处理**: 包含窗口操作、流连接等高级功能
+- **状态管理**: 支持流处理状态存储
+
+### 4. 管理功能
+- **菜单管理**: 统一的用户界面管理
+- **生产者管理**: 统一的生产者操作管理
+- **消费者管理**: 统一的消费者操作管理
+- **流处理器管理**: 统一的流处理操作管理
 
 ## 环境要求
 
@@ -117,107 +145,140 @@ mvn clean compile
 
 ### 3. 运行示例
 
-#### 运行主应用
+#### 方式一：交互式模式（推荐）
 ```bash
-mvn exec:java -Dexec.mainClass="com.example.kafka.KafkaApplication"
+# 启动交互式菜单
+mvn exec:java -Dexec.mainClass="com.example.kafka.ApplicationLauncher"
 ```
 
-#### 单独运行生产者
+#### 方式二：命令行模式
 ```bash
-mvn exec:java -Dexec.mainClass="com.example.kafka.producer.SimpleProducer"
+# 生产者模式
+mvn exec:java -Dexec.mainClass="com.example.kafka.ApplicationLauncher" -Dexec.args="producer simple"
+mvn exec:java -Dexec.mainClass="com.example.kafka.ApplicationLauncher" -Dexec.args="producer advanced"
+mvn exec:java -Dexec.mainClass="com.example.kafka.ApplicationLauncher" -Dexec.args="producer interactive"
+
+# 消费者模式
+mvn exec:java -Dexec.mainClass="com.example.kafka.ApplicationLauncher" -Dexec.args="consumer simple"
+mvn exec:java -Dexec.mainClass="com.example.kafka.ApplicationLauncher" -Dexec.args="consumer advanced"
+
+# 流处理模式
+mvn exec:java -Dexec.mainClass="com.example.kafka.ApplicationLauncher" -Dexec.args="stream wordcount"
+mvn exec:java -Dexec.mainClass="com.example.kafka.ApplicationLauncher" -Dexec.args="stream order"
+mvn exec:java -Dexec.mainClass="com.example.kafka.ApplicationLauncher" -Dexec.args="stream advanced"
 ```
 
-#### 单独运行消费者
+#### 方式三：直接运行编译后的类
 ```bash
-mvn exec:java -Dexec.mainClass="com.example.kafka.consumer.SimpleConsumer"
-```
+# 交互式模式
+java -cp target/classes com.example.kafka.ApplicationLauncher
 
-#### 运行流处理
-```bash
-mvn exec:java -Dexec.mainClass="com.example.kafka.streams.WordCountStream"
+# 命令行模式
+java -cp target/classes com.example.kafka.ApplicationLauncher producer simple
+java -cp target/classes com.example.kafka.ApplicationLauncher consumer advanced
+java -cp target/classes com.example.kafka.ApplicationLauncher stream wordcount
 ```
 
 ## 详细使用说明
 
-### 生产者使用
+### 🎯 交互式模式使用
 
-#### 简单生产者
-```java
-SimpleProducer producer = new SimpleProducer();
+启动交互式模式后，您将看到以下菜单：
 
-// 发送简单消息
-producer.sendMessage("test-topic", "key", "Hello Kafka!");
-
-// 发送用户对象
-User user = new User("1", "张三", "zhangsan@example.com", 25);
-producer.sendUserMessage("user-topic", "user-1", user);
-
-// 批量发送
-producer.sendBatchMessages("test-topic", 100);
-
-producer.close();
+```
+=== Kafka 详细使用示例 ===
+1. 运行简单生产者
+2. 运行简单消费者
+3. 运行高级生产者
+4. 运行高级消费者
+5. 运行多线程消费者
+6. 运行流处理器
+7. 退出
+==========================
 ```
 
-#### 高级生产者
+### 生产者使用
+
+#### 通过管理器使用
 ```java
+// 简单生产者
+ProducerManager producerManager = new ProducerManager();
+producerManager.runSimpleProducer();
+
+// 高级生产者
+producerManager.runAdvancedProducer();
+
+// 交互式生产者
+producerManager.runInteractiveProducer();
+```
+
+#### 直接使用生产者类
+```java
+// 简单生产者
+SimpleProducer producer = new SimpleProducer();
+producer.sendMessage("test-topic", "key", "Hello Kafka!");
+producer.close();
+
+// 高级生产者
 AdvancedProducer producer = new AdvancedProducer();
-
-// 发送到指定分区
-producer.sendToPartition("test-topic", 0, "key", "message");
-
-// 发送订单消息
-Order order = new Order("ORDER-001", "USER-001", "笔记本电脑", 5999.99);
-producer.sendOrderMessage("order-topic", order);
-
-// 发送带时间戳的消息
 producer.sendMessageWithTimestamp("test-topic", "key", "message");
-
 producer.close();
 ```
 
 ### 消费者使用
 
-#### 简单消费者
+#### 通过管理器使用
 ```java
-SimpleConsumer consumer = new SimpleConsumer();
+// 简单消费者
+ConsumerManager consumerManager = new ConsumerManager();
+consumerManager.runSimpleConsumer();
 
-// 消费消息
-consumer.consumeMessages("test-topic");
+// 高级消费者
+consumerManager.runAdvancedConsumer();
 
-// 从指定偏移量消费
-consumer.consumeFromOffset("test-topic", 0, 100);
-
-consumer.close();
+// 多线程消费者
+consumerManager.runMultiThreadConsumer("test-topic", 3);
 ```
 
-#### 高级消费者
+#### 直接使用消费者类
 ```java
+// 简单消费者
+SimpleConsumer consumer = new SimpleConsumer();
+consumer.consumeMessages("test-topic");
+consumer.close();
+
+// 高级消费者
 AdvancedConsumer consumer = new AdvancedConsumer();
-
-// 多线程消费
 consumer.consumeMessagesMultiThread("test-topic");
-
-// 批量消费
-consumer.consumeBatchMessages("test-topic", 100);
-
-// 消费指定分区
-consumer.consumeFromPartition("test-topic", 0);
-
 consumer.close();
 ```
 
 ### 流处理使用
 
-#### 单词计数流
+#### 通过管理器使用
 ```java
-// 启动单词计数流处理
-java -cp target/kafka-demo-1.0.0.jar com.example.kafka.streams.WordCountStream
+// 流处理器管理器
+StreamProcessorManager streamManager = new StreamProcessorManager();
+
+// 单词计数流
+streamManager.runWordCountStream();
+
+// 订单处理流
+streamManager.runOrderProcessingStream();
+
+// 高级流处理器
+streamManager.runAdvancedStreamProcessor();
 ```
 
-#### 订单处理流
+#### 直接使用流处理器类
 ```java
-// 启动订单处理流
-java -cp target/kafka-demo-1.0.0.jar com.example.kafka.streams.OrderProcessingStream
+// 单词计数流
+WordCountStream wordCountStream = new WordCountStream();
+wordCountStream.start();
+
+// 订单处理流
+OrderProcessingStream orderStream = new OrderProcessingStream();
+orderStream.start();
 ```
 
 ## 配置说明
@@ -241,25 +302,83 @@ java -cp target/kafka-demo-1.0.0.jar com.example.kafka.streams.OrderProcessingSt
 - `default.key.serde`: 默认键序列化器
 - `default.value.serde`: 默认值序列化器
 
+## 架构设计
+
+### 🏗️ 分层架构
+
+```
+┌─────────────────────────────────────┐
+│           应用层 (Application)        │
+├─────────────────────────────────────┤
+│  ApplicationLauncher                │
+└─────────────────────────────────────┘
+┌─────────────────────────────────────┐
+│           管理层 (Manager)           │
+├─────────────────────────────────────┤
+│  MenuManager                        │
+│  ProducerManager                    │
+│  ConsumerManager                    │
+│  StreamProcessorManager             │
+└─────────────────────────────────────┘
+┌─────────────────────────────────────┐
+│           业务层 (Business)          │
+├─────────────────────────────────────┤
+│  Producer (Simple/Advanced)         │
+│  Consumer (Simple/Advanced)         │
+│  StreamProcessor (WordCount/Order) │
+└─────────────────────────────────────┘
+┌─────────────────────────────────────┐
+│           配置层 (Config)            │
+├─────────────────────────────────────┤
+│  KafkaConfig                       │
+│  JsonUtil                          │
+│  InputManager                      │
+└─────────────────────────────────────┘
+```
+
+### 🎯 设计模式
+
+1. **管理器模式 (Manager Pattern)**
+   - `ProducerManager` - 管理生产者相关操作
+   - `ConsumerManager` - 管理消费者相关操作
+   - `StreamProcessorManager` - 管理流处理器相关操作
+
+2. **单一职责原则 (Single Responsibility Principle)**
+   - 每个类只负责一个特定的功能
+   - 菜单管理、生产者管理、消费者管理分离
+
+3. **依赖注入 (Dependency Injection)**
+   - 主应用类通过构造函数注入管理器实例
+   - 便于测试和维护
+
 ## 最佳实践
 
-### 1. 生产者最佳实践
+### 1. 架构最佳实践
+- 使用管理器模式统一管理相关功能
+- 保持单一职责原则，每个类只负责一个功能
+- 使用依赖注入提高代码的可测试性
+- 合理使用日志记录，便于问题排查
+
+### 2. 生产者最佳实践
 - 使用批量发送提高吞吐量
 - 配置适当的重试机制
 - 使用幂等性保证消息不重复
 - 合理设置缓冲区大小
+- 使用交互式生产者进行实时测试
 
-### 2. 消费者最佳实践
+### 3. 消费者最佳实践
 - 使用消费者组实现负载均衡
 - 手动提交偏移量保证消息处理
 - 合理设置拉取超时时间
 - 处理消费异常和重试
+- 使用多线程消费者提高处理能力
 
-### 3. 流处理最佳实践
+### 4. 流处理最佳实践
 - 合理设置窗口大小
 - 使用状态存储维护状态
 - 处理流处理异常
 - 监控流处理性能
+- 使用管理器统一管理流处理器
 
 ## 故障排除
 
@@ -297,22 +416,61 @@ java -cp target/kafka-demo-1.0.0.jar com.example.kafka.streams.OrderProcessingSt
 ### 详细对比文档：
 查看 [docs/kraft-vs-zookeeper.md](docs/kraft-vs-zookeeper.md) 了解KRaft与Zookeeper模式的详细对比。
 
+## 新特性
+
+### 🚀 交互式界面
+- **友好菜单**: 直观的菜单系统，支持数字选择
+- **实时交互**: 支持实时输入和发送消息
+- **错误处理**: 完善的输入验证和错误提示
+- **用户友好**: 清晰的操作提示和状态反馈
+
+### 🎛️ 管理器模式
+- **统一管理**: 通过管理器类统一管理相关功能
+- **职责分离**: 每个管理器负责特定的功能模块
+- **易于扩展**: 新增功能只需添加对应的管理器方法
+- **代码复用**: 避免重复代码，提高维护性
+
+### 🔧 命令行支持
+- **脚本化运行**: 支持命令行参数，便于自动化
+- **灵活配置**: 支持不同的运行模式和参数
+- **批量操作**: 支持批量运行和测试
+- **CI/CD集成**: 便于集成到持续集成流程
+
 ## 扩展功能
 
-### 1. 添加新的消息类型
+### 1. 添加新的管理器
+```java
+// 1. 创建新的管理器类
+public class NewFeatureManager {
+    public void runNewFeature() {
+        // 实现新功能
+    }
+}
+
+// 2. 在ApplicationLauncher中注入
+private final NewFeatureManager newFeatureManager;
+
+// 3. 在菜单中添加新选项
+// 4. 在switch语句中添加新的case
+```
+
+### 2. 添加新的消息类型
 - 创建新的实体类
 - 添加相应的序列化器
 - 更新生产者和消费者
+- 在管理器中添加新的方法
 
-### 2. 添加新的流处理逻辑
+### 3. 添加新的流处理逻辑
 - 创建新的流处理类
 - 实现业务逻辑
 - 配置输入输出主题
+- 在StreamProcessorManager中添加新方法
 
-### 3. 监控和指标
+### 4. 监控和指标
 - 集成JMX监控
 - 添加自定义指标
 - 使用Kafka监控工具
+- 在管理器中添加监控功能
 
 ## 许可证
 
@@ -322,8 +480,43 @@ java -cp target/kafka-demo-1.0.0.jar com.example.kafka.streams.OrderProcessingSt
 
 欢迎提交Issue和Pull Request来改进这个项目。
 
+## 快速开始
+
+### 🚀 一键启动（推荐）
+
+1. **启动Kafka环境**
+   ```bash
+   docker-compose up -d
+   ```
+
+2. **编译项目**
+   ```bash
+   mvn clean compile
+   ```
+
+3. **启动应用**
+   ```bash
+   # 交互式模式（推荐新手使用）
+   mvn exec:java -Dexec.mainClass="com.example.kafka.ApplicationLauncher"
+   
+   # 或直接运行
+   java -cp target/classes com.example.kafka.ApplicationLauncher
+   ```
+
+4. **访问Kafka UI**
+   - 打开浏览器访问: http://localhost:28081
+   - 查看主题、消息、消费者组等信息
+
+### 📋 使用步骤
+
+1. 选择菜单选项 1-6 来运行不同的功能
+2. 观察控制台输出，了解Kafka的工作原理
+3. 在Kafka UI中查看消息和主题信息
+4. 尝试不同的生产者和消费者组合
+
 ## 联系方式
 
 如有问题，请通过以下方式联系：
 - 邮箱: example@example.com
 - GitHub: https://github.com/example/kafka-demo
+- 项目文档: [docs/](docs/) 目录
